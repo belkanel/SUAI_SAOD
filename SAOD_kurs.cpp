@@ -948,7 +948,7 @@ void read_book()
 		//std::cin >> name;
 		getline(std::cin, name);
 		is_error = check_error();
-		if (!is_error)
+		if (is_error)
 		{
 			getline(std::cin, input);
 			if (!input.empty())
@@ -956,17 +956,13 @@ void read_book()
 				std::cout << "Ошибка в названии книги." << std::endl;
 			}
 		}
-		else 
-		{
-			std::cout << "Ошибка ввода." << std::endl;
-		}
-	} while (is_error || !input.empty());
+	} while (is_error || input.empty());
 	do {
 		std::cout << "Введите автора книги: ";
 		getline(std::cin, author);
 		//std::cin >> author;
 		is_error = check_error();
-		if (!is_error)
+		if (is_error)
 		{
 			getline(std::cin, input);
 			if (!input.empty()) 
@@ -974,16 +970,12 @@ void read_book()
 				std::cout << "Ошибка ввода имени автора." << std::endl;
 			}
 		}
-		else
-		{
-			std::cout << "Ошибка ввода." << std::endl;
-		}
-	} while (is_error || !input.empty());
+	} while (is_error || input.empty());
 	do {
 		std::cout << "Введите год издания книги: ";
 		std::cin >> year;
 		is_error = check_error();
-		if (!is_error) 
+		if (is_error) 
 		{
 			getline(std::cin, input);
 			if (!input.empty())
@@ -991,11 +983,7 @@ void read_book()
 				std::cout << "Ошибка ввода года издания." << std::endl;
 			}
 		}
-		else 
-		{
-			std::cout << "Ошибка ввода." << std::endl;
-		}
-	} while (is_error || !input.empty());
+	} while (is_error || input.empty());
 	is_have = true;
 	book_data book = book_data(
 		std::to_string(first_num_code),
@@ -1099,9 +1087,10 @@ void read_ticket()
 	int year_join = 0;
 	std::string input;
 	bool is_error;
-	int count = 0;
+	int count = 0, count_try = 0;
 	node* p = nullptr;
 	do {
+		count_try = 0;
 		std::cout << "Введите номер читательского билета 'ANNNN-YY': " << std::endl;
 		std::cin.ignore((std::numeric_limits<short>::max)(), '\n');
 		getline(std::cin, input);
@@ -1112,6 +1101,7 @@ void read_ticket()
 			if (count != 3) 
 			{
 				std::cout << "Ошибка ввода читательского билета." << std::endl;
+				//count_try++;
 			}
 			else 
 			{
@@ -1119,10 +1109,12 @@ void read_ticket()
 					add_zero(std::to_string(year_join), 2));
 			}
 		}
+		//count_try++;
 	} while (is_error || count != 3 || p == nullptr);
 	int first_num_code = 0, second_num_code = 0;
 	book_data* book = nullptr;
 	do {
+		count_try = 0;
 		std::cout << "Введите номер книги 'NNN.MMM': " << std::endl;
 		getline(std::cin, input);
 		is_error = check_error();
@@ -1132,6 +1124,7 @@ void read_ticket()
 			if (count != 2) 
 			{
 				std::cout << "Ошибка ввода номера." << std::endl;
+				//count_try++;
 			}
 			else 
 			{
@@ -1144,6 +1137,7 @@ void read_ticket()
 				}
 			}
 		}
+		//count_try++;
 	} while (is_error || count != 2 || book->empty || !book->is_have);
 	std::string take_date;
 	do {
@@ -1193,7 +1187,7 @@ void return_ticket()
 				if (!book->empty && !book->is_have) 
 				{
 					std::cout << "Книга возвращена в библиотеку." << std::endl;
-					book->is_have = true;
+					//book->is_have = true;
 					//delete first_num_code, second_num_code;
 					//delete[] first_code, second_code;
 					return;
@@ -1201,7 +1195,7 @@ void return_ticket()
 			}
 		}
 	} while (is_error || count != 2 || book->empty || book->is_have);
-	//book->is_have = true;
+	book->is_have = true;
 	//delete first_num_code, second_num_code;
 	//delete[] first_code, second_code;
 	delete_ticket_book_num(book->get_num());
@@ -1321,8 +1315,8 @@ void help_command()
 	std::cout << "\t12. Поиск книги по названию.\n";
 	std::cout << "\t13. Выдать книгу читателю..\n";
 	std::cout << "\t14. Вернуть книгу в библиотеку.\n";
-	std::cout << "\t15. Показать список выданных книг.\n";
-	std::cout << "\t16. Сохранить данные.\n";
+	//std::cout << "\t15. Показать список выданных книг.\n";
+	//std::cout << "\t16. Сохранить данные.\n";
 	std::cout << "\t17. Выход из программы.\n";
 	std::cout << "Введите номер команды.\n";
 	std::cout << "Команда: ";
