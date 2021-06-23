@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 #include <Windows.h>
-
+#include "books.h"
 
 std::string add_zero(std::string original, size_t need_len);
 int double_hash(std::string num, int i);
@@ -70,6 +70,7 @@ struct book_data
 	int year;
 	bool is_have;
 	bool empty;
+	bool deleted = false;
 	book_data() 
 	{
 		empty = true;
@@ -80,14 +81,15 @@ struct book_data
 		std::string name,
 		std::string author,
 		int year,
-		bool is_have) {
+		bool is_have) 
+	{
 		this->first_num_code = add_zero(first_num_code, 3);
 		this->second_num_code = add_zero(second_num_code, 3);
 		this->name = name;
 		this->author = author;
 		this->year = year;
 		this->is_have = is_have;
-		empty = false;
+		this ->empty = false;
 	}
 
 	std::string book_to_string() 
@@ -176,7 +178,7 @@ struct node
 };
 
 int hash_c = 7, hash_d = 17;
-const int books_array_size = 1000;
+int books_array_size = 4;
 const int months[]{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30 ,31 };		//количество дней в месяце
 char chars[6] = { 'А', 'Ч', 'В','а','ч','в' };		//1 символ читательского билета
 node* main_listener = nullptr;
@@ -218,6 +220,7 @@ std::string readDate();
 void read_listener();
 void read_book();
 void look_all_books();
+void extend_table();
 void delete_book(std::string num);
 book_data* get_book(std::string num);
 void find_book_num(std::string num);
@@ -231,6 +234,7 @@ node* get_listener(node* p, std::string bookd);
 void help_command();
 short inputValidationShort(short min, short max);
 bool inputValidation(char chr, bool message);
+void print_all_given_books();
 
 int main()
 {
@@ -318,7 +322,7 @@ int main()
 			return_ticket();
 			break;
 		case 15:
-			
+			print_all_given_books();
 			break;
 		case 16:
 			
@@ -539,7 +543,7 @@ void delete_ticket_book_num(std::string book_id)
 		}
 		remove(head, pos);
 		std::cout << "Удалено." << std::endl;
-		sort_tickets(0, tickets_count - 1); //!!!!!!!!!!!!!!!!!!!!!
+		//sort_tickets(0, tickets_count - 1); //!!!!!!!!!!!!!!!!!!!!!
 	}
 }
 
@@ -773,6 +777,10 @@ void add_book(book_data a)
 	int i = 0;
 	while (true) 
 	{
+		if (i == books_array_size)
+		{
+			extend_table();
+		}
 		hs = a.hash(i) % books_array_size;
 		if (books_array[hs].empty) 
 		{
@@ -1008,6 +1016,19 @@ void look_all_books()
 	}
 }
 
+//функция расширения хэш-таблицы
+void extend_table()
+{
+	int new_books_array_size = books_array_size * 2;
+	book_data* new_books_array = new book_data[new_books_array_size];
+	for (int i = 0; i < books_array_size; i++)
+	{
+		memcpy(&new_books_array[i], &books_array[i], sizeof(book_data));
+	}
+	books_array = new_books_array;
+	books_array_size = new_books_array_size;
+}
+
 //удаление книги
 void delete_book(std::string num) 
 {
@@ -1186,19 +1207,20 @@ void return_ticket()
 					add_zero(std::to_string(second_num_code), 2));
 				if (!book->empty && !book->is_have) 
 				{
+					delete_ticket_book_num(book->get_num());
 					std::cout << "Книга возвращена в библиотеку." << std::endl;
-					//book->is_have = true;
+					book->is_have = true;
 					//delete first_num_code, second_num_code;
 					//delete[] first_code, second_code;
 					return;
 				}
 			}
 		}
-	} while (is_error || count != 2 || book->empty || book->is_have);
-	book->is_have = true;
+	} while (is_error || count != 2 || book->empty || !book->is_have);
+	book->is_have = false;
 	//delete first_num_code, second_num_code;
 	//delete[] first_code, second_code;
-	delete_ticket_book_num(book->get_num());
+	//delete_ticket_book_num(book->get_num());
 }
 
 
@@ -1315,9 +1337,8 @@ void help_command()
 	std::cout << "\t12. Поиск книги по названию.\n";
 	std::cout << "\t13. Выдать книгу читателю..\n";
 	std::cout << "\t14. Вернуть книгу в библиотеку.\n";
-	//std::cout << "\t15. Показать список выданных книг.\n";
-	//std::cout << "\t16. Сохранить данные.\n";
-	std::cout << "\t17. Выход из программы.\n";
+	std::cout << "\t15. Показать список выданных книг.\n";
+	std::cout << "\t16. Выход из программы.\n";
 	std::cout << "Введите номер команды.\n";
 	std::cout << "Команда: ";
 };
@@ -1367,3 +1388,24 @@ bool inputValidation(char chr, bool message)
 	}
 }
  
+//вывод выданных книг
+void print_all_given_books()
+{
+	if (head == nullptr) {
+		std::cout << "Не выдано ни одной книги!" << std::endl;
+		return;
+	}
+
+	element* current = head;
+	while (current->next != nullptr)
+	{
+		node* listener = get_listener(main_listener, current->data.listener_bookd);
+		std::cout << "Книга под номером: " << current->data.book_num << " выдана " << listener->key.first_name << " " << listener->key.middle_name << std::endl;
+		std::cout << "Взята: " << current->data.take_time << " , должна быть возвращена: " << current->data.return_time << std::endl;
+		current = current->next;
+		if (current->next == current)
+		{
+			return;
+		}
+	}
+}
